@@ -26,12 +26,15 @@ func main() {
 	}
 
 	b.Start(ctx)
-	fmt.Println(GetArcotel())
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	content, err := GetArcotel()
+	if err != nil {
+		fmt.Println(err)
+	}
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   update.Message.Text,
+		Text:   content,
 	})
 }

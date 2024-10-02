@@ -17,7 +17,7 @@ func (e *logError) Error() string {
 }
 
 func GetArcotel() (string, error) {
-	resp, err := http.Get("https://arcotel.ru")
+	resp, err := http.Get("https://arcotel.ru/studentam/raspisanie-i-grafiki/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya?group=54651")
 
 	if err != nil {
 		return "", &logError{
