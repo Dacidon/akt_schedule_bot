@@ -20,21 +20,36 @@ func main() {
 		bot.WithDefaultHandler(handler),
 	}
 
-	b, err := bot.New("6591569506:AAGi0m_4vQoXWYEBf0DfEBqEwbpWIQnFohY", opts...)
+	b, err := bot.New(os.Args[1], opts...)
 	if err != nil {
 		panic(err)
 	}
 
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, startHandler)
+
 	b.Start(ctx)
 }
 
+// TODO: Заменить тестовый хендлер приема на команды
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	content, err := GetArcotel()
+	content, err := GetSchedule(update.Message.Text, 5)
 	if err != nil {
 		fmt.Println(err)
 	}
+	text := fmt.Sprintf("%v", content)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   content,
+		Text:   text,
 	})
 }
+
+func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	msg := "Бот для скрейпинга расписания АКТ(ф)СПбГУТ. ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.1(alpha)"
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   msg,
+	})
+}
+
+// TODO: Написать хэндлеры под команды отображения расписания и выбора группы
