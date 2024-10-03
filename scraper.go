@@ -73,7 +73,7 @@ func GetSch(groups map[string]string, selGroup string, day string) ([5]string, e
 	v, ok := groups[selGroup]
 	if !ok {
 		return [5]string{}, &logError{
-			Message: "Такой группы не существует.",
+			Message: fmt.Sprintf("%s группы не существует.", selGroup),
 			Time:    time.Now(),
 		}
 	}
