@@ -26,25 +26,13 @@ func main() {
 	}
 
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, startHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/day", bot.MatchTypeContains, dayHandler)
 
 	b.Start(ctx)
 }
 
-// TODO: Заменить тестовый хендлер приема на команды
-func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	content, err := GetSchedule(update.Message.Text, 5)
-	if err != nil {
-		fmt.Println(err)
-	}
-	text := fmt.Sprintf("%v", content)
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   text,
-	})
-}
-
 func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	msg := "Бот для скрейпинга расписания АКТ(ф)СПбГУТ. ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.1(alpha)"
+	msg := "Бот для скрейпинга расписания АКТ(ф)СПбГУТ. ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.2(alpha)"
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
@@ -53,3 +41,19 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 // TODO: Написать хэндлеры под команды отображения расписания и выбора группы
+func dayHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	content, err := GetSchedule(update.Message.Text, update.Message.Text[5:])
+	if err != nil {
+		fmt.Println(err)
+	}
+	text := ""
+
+	for i := 0; i < 5; i++ {
+		text += content[i]
+	}
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   text,
+	})
+}

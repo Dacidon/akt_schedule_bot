@@ -18,7 +18,7 @@ func (e *logError) Error() string {
 	return fmt.Sprintf("[%v] %s", e.Time, e.Message)
 }
 
-func GetSchedule(selGroup string, day int8) ([5]string, error) {
+func GetSchedule(selGroup string, day string) ([5]string, error) {
 	groups, errp := GetGroups()
 	if errp != nil {
 		return [5]string{}, &logError{
@@ -69,7 +69,7 @@ func GetGroups() (map[string]string, error) {
 	return groups, nil
 }
 
-func GetSch(groups map[string]string, selGroup string, day int8) ([5]string, error) {
+func GetSch(groups map[string]string, selGroup string, day string) ([5]string, error) {
 	v, ok := groups[selGroup]
 	if !ok {
 		return [5]string{}, &logError{
@@ -99,27 +99,23 @@ func GetSch(groups map[string]string, selGroup string, day int8) ([5]string, err
 	schedule := [5]string{}
 
 	doc.Find(".vt237").Each(func(i int, s *goquery.Selection) {
-		if _, ok := s.Attr("data-i"); ok {
+		if v, ok := s.Attr("data-i"); ok && v == day {
 			text := s.Text()
 			text = strings.TrimSpace(text)
 			text = strings.Trim(text, "\n")
-			schedule[i] = text
+			schedule[0] = text
 		}
 	})
 
-	doc.Find(".vt244").Each(func(i int, s *goquery.Selection) {
-		s.Find(".vt239").Each(func(j int, st *goquery.Selection) {
-			text := s.Text() + " " + st.Text()
-			text = strings.TrimSpace(text)
-			text = strings.Trim(text, "\n")
-			schedule[i] = text[:100]
-		})
+	doc.Find(fmt.Sprintf(".vt239.rasp-day.rasp-day%s", day)).Each(func(i int, s *goquery.Selection) {
+		text := s.Text() + " "
+		text = strings.TrimSpace(text)
+		text = strings.Trim(text, "\n")
+		schedule[i] = text
 	})
 
 	for i := 0; i < 5; i++ {
-		for j := 0; j < 7; j++ {
-			fmt.Printf("%s\t", schedule[i][j])
-		}
+		fmt.Printf("%s", schedule[i])
 	}
 
 	return schedule, nil
