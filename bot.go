@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
+	"github.com/go-telegram/ui/keyboard/inline"
 )
 
 // Send any text message to the bot after the bot has been started
@@ -51,25 +52,24 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 // TODO: Написать хэндлеры под команды отображения расписания и выбора группы
 func dayHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if CheckUser(update.Message.From.ID) && update.Message.Text[4:] != "" {
-		content, err := GetSchedule(RetrieveGroup(update.Message.From.ID), update.Message.Text[5:])
-		if err != nil {
-			fmt.Println(err)
-		}
-		text := ""
 
-		for i := 0; i < 5; i++ {
-			text += content[i]
-		}
+	kb := inline.New(b).
+		Row().
+		Button("ПН", []byte("1"), onInlineKeyboardSelect).
+		Button("ВТ", []byte("2"), onInlineKeyboardSelect).
+		Button("СР", []byte("3"), onInlineKeyboardSelect).
+		Row().
+		Button("ЧТ", []byte("4"), onInlineKeyboardSelect).
+		Button("ПТ", []byte("5"), onInlineKeyboardSelect).
+		Button("СБ", []byte("6"), onInlineKeyboardSelect).
+		Row().
+		Button("Отмена", []byte("cancel"), onInlineKeyboardSelect)
 
+	if CheckUser(update.Message.From.ID) {
 		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   text,
-		})
-	} else {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "Пользователь не зарегистрирован и/или не указан день",
+			ChatID:      update.Message.Chat.ID,
+			Text:        "Выберите день:",
+			ReplyMarkup: kb,
 		})
 	}
 }
@@ -87,4 +87,21 @@ func groupHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			Text:   "Группа изменена на " + strings.ToUpper(update.Message.Text[7:]),
 		})
 	}
+}
+
+func onInlineKeyboardSelect(ctx context.Context, b *bot.Bot, mes models.MaybeInaccessibleMessage, data []byte) {
+	content, err := GetSchedule(RetrieveGroup(mes.Message.Chat.ID), string(data))
+	if err != nil {
+		fmt.Println(err)
+	}
+	text := ""
+
+	for i := 0; i < 5; i++ {
+		text += content[i]
+	}
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    mes.Message.Chat.ID,
+		MessageID: mes.Message.ID,
+		Text:      text,
+	})
 }

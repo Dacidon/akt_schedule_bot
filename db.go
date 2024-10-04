@@ -10,8 +10,8 @@ import (
 const (
 	host   = "localhost"
 	port   = 5432
-	user   = ""
-	dbname = ""
+	user   = "dacidon"
+	dbname = "tgBot"
 )
 
 func ConnectString() string {

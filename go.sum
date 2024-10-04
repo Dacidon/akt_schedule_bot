@@ -4,6 +4,8 @@ github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsVi
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
 github.com/go-telegram/bot v1.8.2 h1:Sb2acN6FktQvSmlePDg1g+yGAWplkgFTL9eRWI6Yzy4=
 github.com/go-telegram/bot v1.8.2/go.mod h1:i2TRs7fXWIeaceF3z7KzsMt/he0TwkVC680mvdTFYeM=
+github.com/go-telegram/ui v0.3.2 h1:KaSSYSz3Czs/yebwkkv5OOLnq7KwvL4q0uod20R4fC0=
+github.com/go-telegram/ui v0.3.2/go.mod h1:QbZbHcP+Ge9T/vypsmkAzedtzLO1sobK4zEACDgRwJA=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=

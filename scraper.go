@@ -18,6 +18,10 @@ func (e *logError) Error() string {
 	return fmt.Sprintf("[%v] %s", e.Time, e.Message)
 }
 
+var (
+	count = 1
+)
+
 func GetSchedule(selGroup string, day string) ([5]string, error) {
 	groups, errp := GetGroups()
 	if errp != nil {
@@ -111,12 +115,11 @@ func GetSch(groups map[string]string, selGroup string, day string) ([5]string, e
 		text := s.Text() + " "
 		text = strings.TrimSpace(text)
 		text = strings.Trim(text, "\n")
-		schedule[i] = text
+		schedule[i] = fmt.Sprintf("-------------------------\n%v:\n%s\n-------------------------", count, text)
+		count++
 	})
 
-	for i := 0; i < 5; i++ {
-		fmt.Printf("%s", schedule[i])
-	}
+	count = 1
 
 	return schedule, nil
 }
