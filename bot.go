@@ -31,9 +31,9 @@ func main() {
 }
 
 func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	msg := "Бот для скрейпинга расписания АКТ(ф)СПбГУТ. ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.3\n" +
-		"Команды (не работают до первого использования /start):\n/group - отображает текущую группу, либо изменяет на другую.\nИспользование: /group <название_группы>. Группу необязательно писать капсом, однако формат должен быть в стиле \"ГРУППА-НОМЕР\" (например ИСС-01)." +
-		"\n\n/day - отображает расписание за определенный день недели.\nИспользование: /day <номер_дня>. Номер дня выбирается от 1 до 6 (от ПН до СБ соответственно)."
+	msg := "ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.4\n\n" +
+		"Команды (не работают до первого использования /start):\n\n/group - отображает текущую группу, либо изменяет на другую.\nИспользование: /group <название_группы>. Группу необязательно писать капсом, однако формат должен быть в стиле \"ГРУППА-НОМЕР\" (например ИСС-01)." +
+		"\n\n/day - отображает расписание за определенный день недели.\nИспользование: /day, после чего выбрать день недели по кнопке"
 
 	if !CheckUser(update.Message.From.ID) {
 		AddUser(update.Message.From.ID, update.Message.From.Username, "")
@@ -50,20 +50,19 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 }
 
-// TODO: Написать хэндлеры под команды отображения расписания и выбора группы
 func dayHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	kb := inline.New(b).
 		Row().
-		Button("ПН", []byte("1"), onInlineKeyboardSelect).
-		Button("ВТ", []byte("2"), onInlineKeyboardSelect).
-		Button("СР", []byte("3"), onInlineKeyboardSelect).
+		Button("ПН", []byte("1"), onDaySelect).
+		Button("ВТ", []byte("2"), onDaySelect).
+		Button("СР", []byte("3"), onDaySelect).
 		Row().
-		Button("ЧТ", []byte("4"), onInlineKeyboardSelect).
-		Button("ПТ", []byte("5"), onInlineKeyboardSelect).
-		Button("СБ", []byte("6"), onInlineKeyboardSelect).
+		Button("ЧТ", []byte("4"), onDaySelect).
+		Button("ПТ", []byte("5"), onDaySelect).
+		Button("СБ", []byte("6"), onDaySelect).
 		Row().
-		Button("Отмена", []byte("cancel"), onInlineKeyboardSelect)
+		Button("Отмена", []byte("cancel"), onDaySelect)
 
 	if CheckUser(update.Message.From.ID) {
 		b.SendMessage(ctx, &bot.SendMessageParams{
@@ -78,7 +77,7 @@ func groupHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if CheckUser(update.Message.From.ID) && update.Message.Text[6:] == "" {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "В настоящий момент закреплена группа: " + RetrieveGroup(update.Message.From.ID) + ". Напоминаю, чтобы изменить группу, необходимо прописать /group <название_группы>.",
+			Text:   "В настоящий момент закреплена группа: " + RetrieveGroup(update.Message.From.ID) + ".\n\nНапоминаю, чтобы изменить группу, необходимо прописать /group <название_группы>.",
 		})
 	} else if CheckUser(update.Message.From.ID) {
 		UpdateUser(update.Message.From.ID, strings.ToUpper(update.Message.Text[7:]))
@@ -89,19 +88,14 @@ func groupHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 }
 
-func onInlineKeyboardSelect(ctx context.Context, b *bot.Bot, mes models.MaybeInaccessibleMessage, data []byte) {
-	content, err := GetSchedule(RetrieveGroup(mes.Message.Chat.ID), string(data))
+func onDaySelect(ctx context.Context, b *bot.Bot, mes models.MaybeInaccessibleMessage, data []byte) {
+	text, err := GetSchedule(RetrieveGroup(mes.Message.Chat.ID), string(data))
 	if err != nil {
 		fmt.Println(err)
 	}
-	text := ""
 
-	for i := 0; i < 5; i++ {
-		text += content[i]
-	}
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    mes.Message.Chat.ID,
-		MessageID: mes.Message.ID,
-		Text:      text,
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: mes.Message.Chat.ID,
+		Text:   text,
 	})
 }
