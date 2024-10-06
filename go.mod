@@ -6,7 +6,7 @@ require github.com/go-telegram/bot v1.8.2
 
 require github.com/lib/pq v1.10.9
 
-require github.com/go-telegram/ui v0.3.2 // indirect
+require github.com/go-telegram/ui v0.3.2
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.0

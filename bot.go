@@ -52,7 +52,11 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 func dayHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
-	kb := inline.New(b).
+	opts := []inline.Option{
+		inline.NoDeleteAfterClick(),
+	}
+
+	kb := inline.New(b, opts...).
 		Row().
 		Button("ПН", []byte("1"), onDaySelect).
 		Button("ВТ", []byte("2"), onDaySelect).
@@ -60,9 +64,7 @@ func dayHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		Row().
 		Button("ЧТ", []byte("4"), onDaySelect).
 		Button("ПТ", []byte("5"), onDaySelect).
-		Button("СБ", []byte("6"), onDaySelect).
-		Row().
-		Button("Отмена", []byte("cancel"), onDaySelect)
+		Button("СБ", []byte("6"), onDaySelect)
 
 	if CheckUser(update.Message.From.ID) {
 		b.SendMessage(ctx, &bot.SendMessageParams{
@@ -94,8 +96,11 @@ func onDaySelect(ctx context.Context, b *bot.Bot, mes models.MaybeInaccessibleMe
 		fmt.Println(err)
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: mes.Message.Chat.ID,
-		Text:   text,
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		MessageID:   mes.Message.ID,
+		ParseMode:   models.ParseModeHTML,
+		ChatID:      mes.Message.Chat.ID,
+		Text:        text,
+		ReplyMarkup: mes.Message.ReplyMarkup,
 	})
 }

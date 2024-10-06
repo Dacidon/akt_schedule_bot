@@ -24,7 +24,7 @@ var (
 )
 
 func GetSchedule(selGroup string, day string) (string, error) {
-	groups, errp := GetGroups()
+	groups, errp := getGroups()
 	if errp != nil {
 		return "", &logError{
 			Message: fmt.Sprintf("Ошибка при парсинге групп: \n%v", errp),
@@ -34,7 +34,7 @@ func GetSchedule(selGroup string, day string) (string, error) {
 
 	if time.Now().Weekday().String() == "Sunday" {
 		var errs error
-		schedule, errs = GetSchSunday(groups, selGroup, day)
+		schedule, errs = getSchSunday(groups, selGroup, day)
 		if errs != nil {
 			return "", &logError{
 				Message: fmt.Sprintf("Ошибка при парсинге групп: \n%v", errs),
@@ -43,7 +43,7 @@ func GetSchedule(selGroup string, day string) (string, error) {
 		}
 	} else {
 		var errs error
-		schedule, errs = GetSch(groups, selGroup, day)
+		schedule, errs = getSch(groups, selGroup, day)
 		if errs != nil {
 			return "", &logError{
 				Message: fmt.Sprintf("Ошибка при парсинге групп: \n%v", errs),
@@ -52,10 +52,14 @@ func GetSchedule(selGroup string, day string) (string, error) {
 		}
 	}
 
+	_, v := getPrograms()
+
+	println(v)
+
 	return schedule, nil
 }
 
-func GetGroups() (map[string]string, error) {
+func getGroups() (map[string]string, error) {
 	resp, errg := http.Get("https://arcotel.ru/studentam/raspisanie-i-grafiki/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya")
 
 	if errg != nil {
@@ -86,7 +90,7 @@ func GetGroups() (map[string]string, error) {
 	return groups, nil
 }
 
-func GetSch(groups map[string]string, selGroup string, day string) (string, error) {
+func getSch(groups map[string]string, selGroup string, day string) (string, error) {
 	v, ok := groups[selGroup]
 	if !ok {
 		return "", &logError{
@@ -127,8 +131,7 @@ func GetSch(groups map[string]string, selGroup string, day string) (string, erro
 	doc.Find(fmt.Sprintf(".vt239.rasp-day.rasp-day%s", day)).Each(func(i int, s *goquery.Selection) {
 		text := s.Text() + " "
 		text = strings.TrimSpace(text)
-		text = strings.Trim(text, "\n")
-		schedule[i] = fmt.Sprintf("-------------------------\n%v.\n%s\n-------------------------", count, text)
+		schedule[i] = fmt.Sprintf("-------------------------\n%v.\n<b>%s</b>\n-------------------------", count, text)
 		count++
 	})
 
@@ -136,13 +139,13 @@ func GetSch(groups map[string]string, selGroup string, day string) (string, erro
 	var text string
 
 	for i := 0; i < 5; i++ {
-		text += schedule[i]
+		text += strings.Trim(schedule[i], "\n")
 	}
 
 	return text, nil
 }
 
-func GetSchSunday(groups map[string]string, selGroup string, day string) (string, error) {
+func getSchSunday(groups map[string]string, selGroup string, day string) (string, error) {
 	href, err := getHref(groups, selGroup)
 	if err != nil {
 		return "", &logError{
@@ -235,4 +238,35 @@ func getHref(groups map[string]string, selGroup string) (string, error) {
 	})
 
 	return href, nil
+}
+
+func getPrograms() (map[string]string, error) {
+	resp, errg := http.Get("https://arcotel.ru/studentam/raspisanie-i-grafiki/raspisanie-zanyatiy-studentov-ochnoy-i-vecherney-form-obucheniya")
+
+	if errg != nil {
+		return nil, &logError{
+			Message: fmt.Sprintf("Ошибка подключения к arcotel.ru: %v", errg),
+			Time:    time.Now(),
+		}
+	}
+	defer resp.Body.Close()
+
+	doc, errq := goquery.NewDocumentFromReader(resp.Body)
+	if errq != nil {
+		return nil, &logError{
+			Message: fmt.Sprintf("Ошибка при получении страницы: \n%v", errq),
+			Time:    time.Now(),
+		}
+	}
+
+	programs := make(map[string]string)
+
+	doc.Find(".vt256_op").Each(func(i int, s *goquery.Selection) {
+		dataI, _ := s.Attr("data-i")
+		dataNm := fmt.Sprintf("%v.\n"+s.Text(), i)
+		dataNm = strings.TrimSpace(dataNm)
+		programs[dataNm] = dataI
+	})
+
+	return programs, nil
 }
