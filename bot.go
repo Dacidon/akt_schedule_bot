@@ -12,8 +12,6 @@ import (
 	"github.com/go-telegram/ui/keyboard/inline"
 )
 
-// Send any text message to the bot after the bot has been started
-
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
@@ -31,7 +29,7 @@ func main() {
 }
 
 func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	msg := "ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.4\n\n" +
+	msg := "ВНИМАНИЕ! БОТ НАХОДИТСЯ НА СТАДИИ РАЗРАБОТКИ, И МОЖЕТ/БУДЕТ ФУНКЦИОНИРОВАТЬ НЕПРАВИЛЬНО! v.0.5\n\n" +
 		"Команды (не работают до первого использования /start):\n\n/group - отображает текущую группу, либо изменяет на другую.\nИспользование: /group <название_группы>. Группу необязательно писать капсом, однако формат должен быть в стиле \"ГРУППА-НОМЕР\" (например ИСС-01)." +
 		"\n\n/day - отображает расписание за определенный день недели.\nИспользование: /day, после чего выбрать день недели по кнопке"
 

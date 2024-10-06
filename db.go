@@ -14,7 +14,7 @@ const (
 	dbname = "tgBot"
 )
 
-func ConnectString() string {
+func connectString() string {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"dbname=%s sslmode=disable", host, port, user, dbname)
 
 	return psqlInfo
@@ -22,7 +22,7 @@ func ConnectString() string {
 
 func AddUser(user_id int64, username string, group_id string) {
 
-	db, err := sql.Open("postgres", ConnectString())
+	db, err := sql.Open("postgres", connectString())
 	if err != nil {
 		panic(err)
 	}
@@ -45,7 +45,7 @@ func AddUser(user_id int64, username string, group_id string) {
 
 func UpdateUser(user_id int64, group_id string) {
 
-	db, err := sql.Open("postgres", ConnectString())
+	db, err := sql.Open("postgres", connectString())
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +68,7 @@ func UpdateUser(user_id int64, group_id string) {
 
 func RetrieveGroup(user_id int64) string {
 
-	db, err := sql.Open("postgres", ConnectString())
+	db, err := sql.Open("postgres", connectString())
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +98,7 @@ func RetrieveGroup(user_id int64) string {
 
 func CheckUser(user_id int64) bool {
 
-	db, err := sql.Open("postgres", ConnectString())
+	db, err := sql.Open("postgres", connectString())
 	if err != nil {
 		panic(err)
 	}
