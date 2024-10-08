@@ -8,14 +8,15 @@ import (
 )
 
 const (
-	host   = "localhost"
-	port   = 5432
-	user   = "dacidon"
-	dbname = "tgBot"
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	dbname   = "aktTgBot"
+	password = "AmBataKam195%"
 )
 
 func connectString() string {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"dbname=%s sslmode=disable", host, port, user, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
 	return psqlInfo
 }

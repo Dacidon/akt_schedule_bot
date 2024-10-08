@@ -21,7 +21,7 @@ func main() {
 		panic(err)
 	}
 
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, startHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeContains, startHandler)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/day", bot.MatchTypeContains, dayHandler)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/group", bot.MatchTypeContains, groupHandler)
 
@@ -33,18 +33,35 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		"Команды (не работают до первого использования /start):\n\n/group - отображает текущую группу, либо изменяет на другую.\nИспользование: /group <название_группы>. Группу необязательно писать капсом, однако формат должен быть в стиле \"ГРУППА-НОМЕР\" (например ИСС-01)." +
 		"\n\n/day - отображает расписание за определенный день недели.\nИспользование: /day, после чего выбрать день недели по кнопке"
 
-	if !CheckUser(update.Message.From.ID) {
-		AddUser(update.Message.From.ID, update.Message.From.Username, "")
+	switch update.Message.Chat.Type {
+	case "group":
+		if !CheckUser(update.Message.Chat.ID) {
+			AddUser(update.Message.Chat.ID, update.Message.Chat.Username, "")
 
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   msg + "\nНовый пользователь зарегистрирован. Группа не установлена.",
-		})
-	} else {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   msg,
-		})
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   msg + "\nНовый чат зарегистрирован. Группа не установлена.",
+			})
+		} else {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   msg,
+			})
+		}
+	case "private":
+		if !CheckUser(update.Message.From.ID) {
+			AddUser(update.Message.From.ID, update.Message.From.Username, "")
+
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   msg + "\nНовый пользователь зарегистрирован. Группа не установлена.",
+			})
+		} else {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   msg,
+			})
+		}
 	}
 }
 
@@ -64,27 +81,55 @@ func dayHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		Button("ПТ", []byte("5"), onDaySelect).
 		Button("СБ", []byte("6"), onDaySelect)
 
-	if CheckUser(update.Message.From.ID) {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:      update.Message.Chat.ID,
-			Text:        "Выберите день:",
-			ReplyMarkup: kb,
-		})
+	switch update.Message.Chat.Type {
+	case "group":
+		if CheckUser(update.Message.Chat.ID) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:      update.Message.Chat.ID,
+				Text:        "Выберите день:",
+				ReplyMarkup: kb,
+			})
+		}
+	case "private":
+		if CheckUser(update.Message.From.ID) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:      update.Message.Chat.ID,
+				Text:        "Выберите день:",
+				ReplyMarkup: kb,
+			})
+		}
 	}
 }
 
+// TODO: Полный рефактор всего (и особенно этого) кода!!!
+
 func groupHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if CheckUser(update.Message.From.ID) && update.Message.Text[6:] == "" {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "В настоящий момент закреплена группа: " + RetrieveGroup(update.Message.From.ID) + ".\n\nНапоминаю, чтобы изменить группу, необходимо прописать /group <название_группы>.",
-		})
-	} else if CheckUser(update.Message.From.ID) {
-		UpdateUser(update.Message.From.ID, strings.ToUpper(update.Message.Text[7:]))
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "Группа изменена на " + strings.ToUpper(update.Message.Text[7:]),
-		})
+	if update.Message.Chat.Type == "group" {
+		if CheckUser(update.Message.From.ID) && update.Message.Text[6:] == "" {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "В настоящий момент закреплена группа: " + RetrieveGroup(update.Message.From.ID) + ".\n\nНапоминаю, чтобы изменить группу, необходимо прописать /group <название_группы>.",
+			})
+		} else if CheckUser(update.Message.Chat.ID) {
+			UpdateUser(update.Message.Chat.ID, strings.ToUpper(update.Message.Text[7:]))
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "Группа изменена на " + strings.ToUpper(update.Message.Text[7:]),
+			})
+		}
+	} else if update.Message.Chat.Type == "private" {
+		if CheckUser(update.Message.From.ID) && update.Message.Text[6:] == "" {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "В настоящий момент закреплена группа: " + RetrieveGroup(update.Message.From.ID) + ".\n\nНапоминаю, чтобы изменить группу, необходимо прописать /group <название_группы>.",
+			})
+		} else if CheckUser(update.Message.From.ID) {
+			UpdateUser(update.Message.From.ID, strings.ToUpper(update.Message.Text[7:]))
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text:   "Группа изменена на " + strings.ToUpper(update.Message.Text[7:]),
+			})
+		}
 	}
 }
 
